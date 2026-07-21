@@ -1,0 +1,11 @@
+{
+  "name": "usion-gravity-gambit",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "solve": "node scripts/solve-campaign.js"
+  },
+  "engines": { "node": ">=20" }
+}

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f1ea">
+  <title>Gravity Gambit</title>
+  <link rel="icon" href="cover.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script async src="https://usions.com/usion-sdk.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><p class="eyebrow" data-i18n="puzzle">PUZZLE</p><h1>Gravity Gambit</h1></div>
+      <button id="levelsButton" class="round-button" type="button" aria-label="Levels">⌘</button>
+    </header>
+
+    <section class="status" aria-label="Game status">
+      <div><span data-i18n="level">Level</span><strong id="levelNumber">1 / 14</strong></div>
+      <div><span data-i18n="moves">Moves</span><strong id="moveCount">0</strong></div>
+      <div><span data-i18n="complete">Complete</span><strong id="progressCount">0%</strong></div>
+    </section>
+
+    <section class="game-card">
+      <div class="level-copy"><h2 id="levelTitle">Open File</h2><p id="levelHint">Rooks travel in straight lines.</p></div>
+      <div id="boardWrap" class="board-wrap"><canvas id="board" aria-label="Gravity chess puzzle board"></canvas></div>
+      <div class="controls">
+        <button id="undoButton" type="button"><span>↶</span><b data-i18n="undo">Undo</b></button>
+        <button id="resetButton" type="button"><span>↻</span><b data-i18n="reset">Reset</b></button>
+      </div>
+    </section>
+
+    <p class="instruction" data-i18n="instruction">Capture the red king. Every piece falls after moving.</p>
+  </main>
+
+  <div id="winOverlay" class="modal" hidden>
+    <div class="modal-card"><p class="eyebrow" data-i18n="solved">SOLVED</p><h2 id="winTitle">Beautiful.</h2><p id="winDetail"></p><button id="nextButton" class="primary" type="button" data-i18n="next">Next puzzle</button></div>
+  </div>
+  <div id="levelOverlay" class="modal" hidden>
+    <div class="modal-card level-modal"><div class="modal-head"><div><p class="eyebrow" data-i18n="campaign">CAMPAIGN</p><h2 data-i18n="choose">Choose a puzzle</h2></div><button id="closeLevels" class="round-button" type="button" aria-label="Close">×</button></div><div id="levelGrid" class="level-grid"></div></div>
+  </div>
+
+  <script src="game-core.js?v=1.0.1"></script>
+  <script src="levels.js?v=1.0.1"></script>
+  <script src="app.js?v=1.0.1"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+.env*
+.railway
+.vercel
+node_modules
+npm-debug.log*
