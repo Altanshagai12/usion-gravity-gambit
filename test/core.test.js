@@ -22,6 +22,34 @@ test('gravity settles pieces on the floor', () => {
   assert.equal(state.pieces[0].y, 4);
 });
 
+test('thin platforms stop gravity but never block chess movement', () => {
+  const level = { width: 5, height: 6, pieces: [{ id: 'r', type: 'rook', x: 0, y: 1 }], king: [4, 1], walls: [], platforms: [[2, 2]] };
+  const state = Core.settle(level, Core.createState(level));
+  assert.equal(state.pieces[0].y, 5);
+  state.pieces[0].x = 2;
+  state.pieces[0].y = 2;
+  assert.equal(Core.settle(level, state).pieces[0].y, 2);
+  assert.equal(Core.legalMoves(level, state, 'r').some((move) => move.to[0] === 4 && move.to[1] === 2), true);
+});
+
+test('a fresh pawn can advance two cells once', () => {
+  const level = { width: 4, height: 7, pieces: [{ id: 'p', type: 'pawn', x: 1, y: 5 }], king: [3, 0], walls: [[1, 6]] };
+  const state = Core.createState(level);
+  const double = Core.legalMoves(level, state, 'p').find((move) => move.to[1] === 3);
+  assert.ok(double);
+  const moved = Core.applyMove(level, state, double);
+  assert.equal(Core.legalMoves(level, moved, 'p').some((move) => move.to[1] === moved.pieces[0].y - 2), false);
+});
+
+test('gravity exposes animation frames', () => {
+  const level = { width: 4, height: 6, pieces: [{ id: 'r', type: 'rook', x: 0, y: 4 }], king: [3, 4], walls: [[0, 5]] };
+  const state = Core.createState(level);
+  const move = Core.legalMoves(level, state, 'r').find((item) => item.to[0] === 1 && item.to[1] === 4);
+  const result = Core.applyMoveDetailed(level, state, move);
+  assert.ok(result.frames.length > 1);
+  assert.equal(result.state.pieces[0].y, 5);
+});
+
 test('capturing the king wins immediately', () => {
   const level = levels[0];
   const state = Core.settle(level, Core.createState(level));
@@ -35,4 +63,10 @@ test('every campaign level is solvable', () => {
     const result = Solver.solve(level, { maxNodes: 100000 });
     assert.equal(result.solved, true, `level ${index + 1}: ${level.title} explored ${result.explored}`);
   });
+});
+
+test('at least 80% of multi-piece levels require every piece', () => {
+  const multiPiece = levels.filter((level) => level.pieces.length > 1);
+  const strict = multiPiece.filter((level) => Solver.requiredPieces(level, { maxNodes: 100000 }).length === level.pieces.length);
+  assert.ok(strict.length / multiPiece.length >= 0.8, `${strict.length}/${multiPiece.length} strict levels`);
 });

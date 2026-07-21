@@ -6,11 +6,13 @@ This project is inspired by the broad chess-puzzle-platformer genre, but uses an
 
 ## Features
 
-- 14-level campaign with progressive mechanics and 1–7 move optimal solutions
+- 14-level campaign with progressive mechanics and 1–5 move optimal solutions
 - Rook, bishop, knight, queen, king, and pawn movement rules
-- Deterministic gravity and piece stacking
+- Animated deterministic gravity and piece stacking
+- Pass-through one-way line platforms and a pawn's first-move double advance
+- Solver-enforced campaign quality: 85.7% of multi-piece levels require every piece (minimum target: 80%)
 - Legal-move highlighting, undo, reset, and gated level selection
-- English and Mongolian UI; host light/dark theme support
+- English and Mongolian UI with a mobile-first Usion layout
 - Progress stored per user through `Usion.storage`
 - Dependency-free Canvas renderer; no external assets or gameplay libraries
 
@@ -29,11 +31,9 @@ npm test
 npm run solve
 ```
 
-The test suite validates chess movement, collision, gravity, capture, and campaign solvability. The BFS solver reports the shortest solution length and explored state count for every level.
+The test suite validates chess movement, wall collision, pass-through platforms, pawn double-step, gravity animation frames, capture, campaign solvability, and the 80% piece-utilization target. The BFS solver reports the shortest solution and required-piece count for every level.
 
 ## Usion registration
-
-Recommended service fields:
 
 ```json
 {

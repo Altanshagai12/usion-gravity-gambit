@@ -25,6 +25,10 @@
     };
   }
 
+  function hasPlatform(level, x, y) {
+    return (level.platforms || []).some((platform) => platform[0] === x && platform[1] === y);
+  }
+
   function occupancy(level, state, omitId) {
     const cells = new Map();
     for (const wall of level.walls || []) cells.set(key(wall[0], wall[1]), 'wall');
@@ -78,23 +82,30 @@
     return state.pieces.flatMap((piece) => legalMoves(level, state, piece.id));
   }
 
-  function settle(level, state) {
+  function settleFrames(level, state) {
+    const frames = [];
     let moved = true;
     while (moved) {
       moved = false;
       const ordered = [...state.pieces].sort((a, b) => b.y - a.y || a.id.localeCompare(b.id));
       for (const piece of ordered) {
         const cells = occupancy(level, state, piece.id);
-        if (inside(level, piece.x, piece.y + 1) && !cells.has(key(piece.x, piece.y + 1))) {
+        if (!hasPlatform(level, piece.x, piece.y) && inside(level, piece.x, piece.y + 1) && !cells.has(key(piece.x, piece.y + 1))) {
           piece.y += 1;
           moved = true;
         }
       }
+      if (moved) frames.push(clone(state));
     }
+    return frames;
+  }
+
+  function settle(level, state) {
+    settleFrames(level, state);
     return state;
   }
 
-  function applyMove(level, state, move) {
+  function applyMoveDetailed(level, state, move) {
     const next = clone(state);
     const piece = next.pieces.find((item) => item.id === move.pieceId);
     if (!piece) return null;
@@ -105,13 +116,18 @@
     piece.fresh = false;
     next.moves += 1;
     if (valid.capture) next.kingAlive = false;
-    if (next.kingAlive) settle(level, next);
-    return next;
+    const frames = [clone(next)];
+    if (next.kingAlive) frames.push(...settleFrames(level, next));
+    return { state: next, frames, move: valid };
+  }
+
+  function applyMove(level, state, move) {
+    return applyMoveDetailed(level, state, move)?.state || null;
   }
 
   function stateHash(state) {
     return `${state.kingAlive ? 1 : 0}|${state.pieces.map((piece) => `${piece.id}:${piece.x},${piece.y},${piece.fresh ? 1 : 0}`).sort().join('|')}`;
   }
 
-  return { allMoves, applyMove, clone, createState, legalMoves, occupancy, settle, stateHash };
+  return { allMoves, applyMove, applyMoveDetailed, clone, createState, hasPlatform, legalMoves, occupancy, settle, settleFrames, stateHash };
 });
