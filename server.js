@@ -4,7 +4,7 @@ const path = require('node:path');
 
 const port = Number(process.env.PORT) || 3000;
 const root = __dirname;
-const types = { '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml' };
+const types = { '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
 
 http.createServer((request, response) => {
   const pathname = new URL(request.url, 'http://localhost').pathname;
