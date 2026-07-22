@@ -67,9 +67,20 @@ test('capturing the king wins immediately', () => {
 });
 
 test('every campaign level is solvable', () => {
+  assert.equal(levels.length, 24);
   levels.forEach((level, index) => {
     const result = Solver.solve(level, { maxNodes: 100000 });
     assert.equal(result.solved, true, `level ${index + 1}: ${level.title} explored ${result.explored}`);
+  });
+});
+
+test('challenge difficulty strictly increases from level 8 onward', () => {
+  const scores = levels.slice(7).map((level) => {
+    const result = Solver.solve(level, { maxNodes: 100000 });
+    return result.moves * 1000 + result.explored;
+  });
+  scores.slice(1).forEach((score, index) => {
+    assert.ok(score > scores[index], `level ${index + 9}: ${score} must exceed ${scores[index]}`);
   });
 });
 

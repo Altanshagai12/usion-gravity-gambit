@@ -6,7 +6,7 @@ This project is inspired by the broad chess-puzzle-platformer genre, but uses an
 
 ## Features
 
-- 14-level campaign with progressive mechanics and 1–5 move optimal solutions
+- 24-level campaign with progressive mechanics and 1–9 move optimal solutions
 - Rook, bishop, knight, queen, king, and pawn movement rules
 - Animated deterministic gravity and piece stacking
 - Pass-through one-way line platforms and a pawn's first-move double advance

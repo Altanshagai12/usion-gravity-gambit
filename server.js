@@ -10,7 +10,7 @@ http.createServer((request, response) => {
   const pathname = new URL(request.url, 'http://localhost').pathname;
   if (pathname === '/health') {
     response.writeHead(200, { 'content-type': 'application/json' });
-    response.end(JSON.stringify({ status: 'ok', levels: 14 }));
+    response.end(JSON.stringify({ status: 'ok', levels: 24 }));
     return;
   }
   const requested = pathname === '/' ? 'index.html' : pathname.slice(1);
