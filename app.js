@@ -2,6 +2,7 @@
   'use strict';
 
   const Core = window.GravityGambitCore;
+  const Layout = window.GravityGambitLayout;
   const levels = window.GravityGambitLevels;
   const canvas = document.getElementById('board');
   const context = canvas.getContext('2d');
@@ -10,7 +11,7 @@
   const undoButton = document.getElementById('undoButton');
   const winOverlay = document.getElementById('winOverlay');
   const levelOverlay = document.getElementById('levelOverlay');
-  const symbols = { rook: '♜', bishop: '♝', knight: '♞', queen: '♛', king: '♚', pawn: '♟' };
+  const symbols = { rook: '\u265c', bishop: '\u265d', knight: '\u265e', queen: '\u265b', king: '\u265a', pawn: '\u2659\ufe0e' };
   const colors = { tanA: '#c9a06b', tanB: '#b78a49', green: '#63d64e', blue: '#55a8df', red: '#e35f62', ink: '#11130f' };
   const copy = {
     en: { moves: 'Moves', solved: 'SOLVED', campaign: 'CAMPAIGN', choose: 'Choose a puzzle', next: 'Next puzzle', win: 'Beautiful.', moveLine: (n) => `Solved in ${n} move${n === 1 ? '' : 's'}.` },
@@ -48,6 +49,8 @@
   let available = [];
   let history = [];
   let cellSize = 40;
+  let visibleRows = 9;
+  let rowOffset = 0;
   let animating = false;
 
   const storage = {
@@ -89,13 +92,14 @@
     const level = levels[levelIndex];
     const rect = wrap.getBoundingClientRect();
     const railHeight = controlRail.getBoundingClientRect().height;
-    cellSize = Math.max(1, Math.floor(Math.min(rect.width / level.width, (rect.height - railHeight) / level.height)));
+    const layout = Layout.compute(rect.width, rect.height, railHeight, level.width, level.height);
+    ({ cellSize, visibleRows, rowOffset } = layout);
     wrap.style.setProperty('--grid-size', `${cellSize}px`);
     const ratio = Math.min(devicePixelRatio || 1, 2);
-    canvas.style.width = `${cellSize * level.width}px`;
-    canvas.style.height = `${cellSize * level.height}px`;
-    canvas.width = cellSize * level.width * ratio;
-    canvas.height = cellSize * level.height * ratio;
+    canvas.style.width = `${layout.width}px`;
+    canvas.style.height = `${layout.height}px`;
+    canvas.width = layout.width * ratio;
+    canvas.height = layout.height * ratio;
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     draw(state);
   }
@@ -103,7 +107,7 @@
   function draw(boardState) {
     const level = levels[levelIndex];
     context.clearRect(0, 0, canvas.width, canvas.height);
-    for (let y = 0; y < level.height; y += 1) for (let x = 0; x < level.width; x += 1) {
+    for (let y = 0; y < visibleRows; y += 1) for (let x = 0; x < level.width; x += 1) {
       context.fillStyle = (x + y) % 2 ? colors.tanB : colors.tanA;
       context.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
     }
@@ -111,24 +115,26 @@
     (level.platforms || []).forEach(([x, y]) => drawPlatform(x, y));
     for (const move of available) {
       context.fillStyle = move.capture ? 'rgba(227,95,98,.58)' : 'rgba(104,74,37,.46)';
-      context.beginPath(); context.arc((move.to[0] + .5) * cellSize, (move.to[1] + .5) * cellSize, cellSize * .22, 0, Math.PI * 2); context.fill();
+      context.beginPath(); context.arc((move.to[0] + .5) * cellSize, (move.to[1] + rowOffset + .5) * cellSize, cellSize * .22, 0, Math.PI * 2); context.fill();
     }
     if (boardState.kingAlive) drawPiece('king', level.king[0], level.king[1], colors.red);
     boardState.pieces.forEach((piece) => drawPiece(piece.type, piece.x, piece.y, colors.blue));
     context.fillStyle = colors.green;
     context.strokeStyle = colors.ink;
     context.lineWidth = Math.max(2, cellSize * .045);
-    context.fillRect(0, level.height * cellSize - 7, level.width * cellSize, 7);
-    context.strokeRect(-2, level.height * cellSize - 9, level.width * cellSize + 4, 10);
+    const floorY = (level.height + rowOffset) * cellSize;
+    context.fillRect(0, floorY - 7, level.width * cellSize, 7);
+    context.strokeRect(-2, floorY - 9, level.width * cellSize + 4, 10);
   }
 
   function drawWalls(level) {
     for (const [x, y] of level.walls) {
       const pad = cellSize * .06;
       context.fillStyle = colors.green; context.strokeStyle = colors.ink; context.lineWidth = Math.max(2, cellSize * .045);
-      context.beginPath(); context.roundRect(x * cellSize + pad, y * cellSize + pad, cellSize - pad * 2, cellSize - pad * 2, cellSize * .12); context.fill(); context.stroke();
+      const visualY = y + rowOffset;
+      context.beginPath(); context.roundRect(x * cellSize + pad, visualY * cellSize + pad, cellSize - pad * 2, cellSize - pad * 2, cellSize * .12); context.fill(); context.stroke();
       context.beginPath();
-      context.roundRect((x + .27) * cellSize, (y + .27) * cellSize, cellSize * .46, cellSize * .46, cellSize * .04);
+      context.roundRect((x + .27) * cellSize, (visualY + .27) * cellSize, cellSize * .46, cellSize * .46, cellSize * .04);
       context.stroke();
     }
   }
@@ -136,16 +142,17 @@
   function drawPlatform(x, y) {
     const width = cellSize * .78;
     context.fillStyle = colors.green; context.strokeStyle = colors.ink; context.lineWidth = Math.max(2, cellSize * .045);
-    context.beginPath(); context.roundRect((x + .5) * cellSize - width / 2, (y + .91) * cellSize, width, cellSize * .14, cellSize * .09); context.fill(); context.stroke();
+    context.beginPath(); context.roundRect((x + .5) * cellSize - width / 2, (y + rowOffset + .84) * cellSize, width, cellSize * .1, cellSize * .05); context.fill(); context.stroke();
   }
 
   function drawPiece(type, x, y, color) {
-    const size = cellSize * .69;
-    context.font = `900 ${size}px Georgia, serif`;
+    const size = cellSize * .78;
+    context.font = `900 ${size}px "Arial Unicode MS", "DejaVu Sans", Georgia, serif`;
     context.textAlign = 'center'; context.textBaseline = 'middle'; context.lineJoin = 'round';
-    context.lineWidth = Math.max(3, cellSize * .075); context.strokeStyle = colors.ink; context.fillStyle = color;
-    context.strokeText(symbols[type], (x + .5) * cellSize, (y + .49) * cellSize);
-    context.fillText(symbols[type], (x + .5) * cellSize, (y + .49) * cellSize);
+    context.lineWidth = Math.max(2, cellSize * .055); context.strokeStyle = colors.ink; context.fillStyle = color;
+    const visualY = y + rowOffset;
+    context.strokeText(symbols[type], (x + .5) * cellSize, (visualY + .49) * cellSize);
+    context.fillText(symbols[type], (x + .5) * cellSize, (visualY + .49) * cellSize);
   }
 
   function interpolate(from, to, amount) {
@@ -237,7 +244,10 @@
 
   canvas.addEventListener('pointerdown', (event) => {
     const rect = canvas.getBoundingClientRect();
-    selectAt(Math.floor((event.clientX - rect.left) / cellSize), Math.floor((event.clientY - rect.top) / cellSize));
+    const logicalY = Layout.logicalRowAt(event.clientY - rect.top, cellSize, rowOffset);
+    if (logicalY >= 0 && logicalY < levels[levelIndex].height) {
+      selectAt(Math.floor((event.clientX - rect.left) / cellSize), logicalY);
+    }
   });
   undoButton.addEventListener('click', () => { if (!animating && history.length) { state = history.pop(); selectedId = null; available = []; updateUI(); draw(state); } });
   document.getElementById('resetButton').addEventListener('click', () => loadLevel(levelIndex));

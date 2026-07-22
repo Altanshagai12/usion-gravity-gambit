@@ -32,7 +32,7 @@
     L('Three Hands', 'Most puzzles need every piece; this one keeps one alternate decoy.', [
       { id: 'bishop', type: 'bishop', x: 2, y: 3 }, { id: 'knight', type: 'knight', x: 5, y: 6 },
       { id: 'pawn', type: 'pawn', x: 0, y: 7 },
-    ], [6, 4], [[0, 4], [2, 4], [4, 7], [2, 2], [5, 5], [2, 7]], [[3, 4], [5, 4]]),
+    ], [6, 4], [[0, 4], [2, 4], [4, 7], [2, 2], [5, 5], [2, 7]], [[3, 4]]),
     L('Vertical Relay', 'The knight first clears a vertical relay.', [
       { id: 'rook', type: 'rook', x: 3, y: 7 }, { id: 'knight', type: 'knight', x: 4, y: 3 },
       { id: 'pawn', type: 'pawn', x: 5, y: 8 },
@@ -52,7 +52,7 @@
     L('Queen’s Lift', 'Raise the rook before the queen crosses the board.', [
       { id: 'rook', type: 'rook', x: 0, y: 7 }, { id: 'queen', type: 'queen', x: 3, y: 4 },
       { id: 'pawn', type: 'pawn', x: 2, y: 8 },
-    ], [6, 2], [[7, 5], [4, 1], [6, 3], [5, 5], [3, 3], [7, 1], [5, 2], [2, 4], [4, 4]], [[5, 1], [1, 4], [7, 7], [4, 7]]),
+    ], [6, 2], [[7, 5], [4, 1], [6, 3], [5, 5], [3, 3], [7, 1], [5, 2], [2, 4], [4, 4]], [[1, 4], [7, 7], [4, 7]]),
     L('Crossed Supports', 'The bishop and rook must occupy each other’s landing files.', [
       { id: 'bishop', type: 'bishop', x: 5, y: 6 }, { id: 'rook', type: 'rook', x: 3, y: 3 },
       { id: 'pawn', type: 'pawn', x: 4, y: 8 },
@@ -66,15 +66,15 @@
     ], [7, 2], [[4, 4], [1, 6], [2, 1], [0, 5], [5, 5], [7, 1], [3, 6], [6, 3], [7, 4], [5, 2], [3, 1], [0, 1], [4, 6]], [[1, 3], [7, 6]]),
     L('Folded Diagonal', 'One bishop builds the other bishop’s final color route.', [
       { id: 'lead', type: 'bishop', x: 4, y: 4 }, { id: 'relay', type: 'bishop', x: 0, y: 1 },
-    ], [7, 2], [[6, 2], [4, 5], [2, 2], [6, 1], [0, 7], [4, 6], [1, 3], [2, 6], [3, 4], [2, 3], [6, 5]], [[7, 4], [4, 3], [6, 3], [0, 6]]),
+    ], [7, 2], [[6, 2], [4, 5], [2, 2], [6, 1], [0, 7], [4, 6], [1, 3], [2, 6], [3, 4], [2, 3], [6, 5]], [[7, 4], [4, 3], [6, 3]]),
     L('Twin Current', 'Two knights cross paths; preserve the lower landing.', [
       { id: 'upper', type: 'knight', x: 2, y: 5 }, { id: 'lower', type: 'knight', x: 1, y: 7 },
       { id: 'relay', type: 'rook', x: 3, y: 6 },
-    ], [6, 1], [[1, 4], [2, 2], [6, 3], [6, 6], [0, 6], [0, 4], [2, 3], [4, 5], [0, 7], [3, 7], [5, 3], [4, 4]], [[7, 7], [6, 2], [2, 1]]),
+    ], [6, 1], [[1, 4], [2, 2], [6, 3], [6, 6], [0, 6], [0, 4], [2, 3], [4, 5], [0, 7], [3, 7], [5, 3], [4, 4]], [[7, 7]]),
     L('Deep Relay', 'Repeat the knight relay at three different heights.', [
       { id: 'first', type: 'knight', x: 5, y: 4 }, { id: 'second', type: 'knight', x: 3, y: 7 },
       { id: 'pawn', type: 'pawn', x: 5, y: 8 },
-    ], [6, 1], [[1, 4], [4, 7], [0, 6], [1, 7], [7, 7], [4, 4], [6, 4], [0, 1], [2, 1], [7, 2], [3, 6], [2, 4]], [[1, 2], [0, 4], [5, 2], [6, 2], [7, 6]]),
+    ], [6, 1], [[1, 4], [4, 7], [0, 6], [1, 7], [7, 7], [4, 4], [6, 4], [0, 1], [2, 1], [7, 2], [3, 6], [2, 4]], [[1, 2], [0, 4], [5, 2], [6, 2]]),
     L('Final Parallax', 'Both bishops must trade landing heights across nine precise moves.', [
       { id: 'right', type: 'bishop', x: 4, y: 7 }, { id: 'left', type: 'bishop', x: 0, y: 6 },
     ], [7, 3], [[3, 5], [1, 1], [1, 3], [6, 1], [7, 5], [2, 5], [6, 4], [7, 1], [2, 7]], [[4, 4], [0, 5], [4, 1], [3, 7], [1, 7]]),

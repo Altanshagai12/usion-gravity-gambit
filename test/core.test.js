@@ -74,10 +74,10 @@ test('every campaign level is solvable', () => {
   });
 });
 
-test('thin platforms never overlap solid walls', () => {
+test('thin platforms never overlap a solid wall boundary', () => {
   levels.forEach((level, index) => {
     const walls = new Set(level.walls.map(([x, y]) => `${x},${y}`));
-    const overlap = level.platforms.filter(([x, y]) => walls.has(`${x},${y}`));
+    const overlap = level.platforms.filter(([x, y]) => walls.has(`${x},${y}`) || walls.has(`${x},${y + 1}`));
     assert.deepEqual(overlap, [], `level ${index + 1}: ${level.title}`);
   });
 });
