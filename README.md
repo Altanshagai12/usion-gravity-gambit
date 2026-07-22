@@ -6,11 +6,11 @@ This project is inspired by the broad chess-puzzle-platformer genre, but uses an
 
 ## Features
 
-- 24-level campaign with progressive mechanics and 1–9 move optimal solutions
+- 24-level campaign with progressive mechanics and 1–10 move optimal solutions
 - Rook, bishop, knight, queen, king, and pawn movement rules
 - Animated deterministic gravity and piece stacking
 - Pass-through one-way line platforms and a pawn's first-move double advance
-- Solver-enforced campaign quality: 85.7% of multi-piece levels require every piece (minimum target: 80%)
+- Solver-enforced campaign quality: 84.3% of all placed pieces are required (minimum target: 80%)
 - Legal-move highlighting, undo, reset, and gated level selection
 - English and Mongolian UI with a mobile-first Usion layout
 - Progress stored per user through `Usion.storage`
@@ -32,6 +32,18 @@ npm run solve
 ```
 
 The test suite validates chess movement, wall collision, pass-through platforms, pawn double-step, gravity animation frames, capture, campaign solvability, and the 80% piece-utilization target. The BFS solver reports the shortest solution and required-piece count for every level.
+
+## Publish the Usion profile image
+
+Set the scoped creator token locally, then run the idempotent publisher. Never commit or paste the token into source files.
+
+```powershell
+$env:USION_API_TOKEN = '<your usion_sk_ token>'
+npm run publish:profile
+Remove-Item Env:USION_API_TOKEN
+```
+
+Use `npm run publish:profile -- --dry-run` to verify the public PNG without changing the registry.
 
 ## Usion registration
 
