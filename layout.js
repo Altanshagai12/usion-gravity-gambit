@@ -19,9 +19,22 @@
     };
   }
 
-  function logicalRowAt(pixelY, cellSize, rowOffset) {
-    return Math.floor(pixelY / cellSize) - rowOffset;
+  function expandLevel(level, extraRows) {
+    const shiftPoint = ([x, y]) => [x, y + extraRows];
+    return {
+      ...level,
+      height: level.height + extraRows,
+      pieces: level.pieces.map((piece) => ({ ...piece, y: piece.y + extraRows })),
+      king: shiftPoint(level.king),
+      walls: (level.walls || []).map(shiftPoint),
+      platforms: (level.platforms || []).map(shiftPoint),
+    };
   }
 
-  return { compute, logicalRowAt };
+  function shiftState(state, deltaRows) {
+    if (!state || deltaRows === 0) return state;
+    return { ...state, pieces: state.pieces.map((piece) => ({ ...piece, y: piece.y + deltaRows })) };
+  }
+
+  return { compute, expandLevel, shiftState };
 });

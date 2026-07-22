@@ -11,7 +11,7 @@
   const undoButton = document.getElementById('undoButton');
   const winOverlay = document.getElementById('winOverlay');
   const levelOverlay = document.getElementById('levelOverlay');
-  const symbols = { rook: '\u265c', bishop: '\u265d', knight: '\u265e', queen: '\u265b', king: '\u265a', pawn: '\u2659\ufe0e' };
+  const symbols = { rook: '\u265c', bishop: '\u265d', knight: '\u265e', queen: '\u265b', king: '\u265a' };
   const colors = { tanA: '#c9a06b', tanB: '#b78a49', green: '#63d64e', blue: '#55a8df', red: '#e35f62', ink: '#11130f' };
   const copy = {
     en: { moves: 'Moves', solved: 'SOLVED', campaign: 'CAMPAIGN', choose: 'Choose a puzzle', next: 'Next puzzle', win: 'Beautiful.', moveLine: (n) => `Solved in ${n} move${n === 1 ? '' : 's'}.` },
@@ -45,6 +45,7 @@
   let unlocked = 1;
   let completed = [];
   let state = null;
+  let activeLevel = null;
   let selectedId = null;
   let available = [];
   let history = [];
@@ -73,7 +74,9 @@
 
   function loadLevel(index) {
     levelIndex = Math.max(0, Math.min(index, levels.length - 1));
-    state = Core.settle(levels[levelIndex], Core.createState(levels[levelIndex]));
+    activeLevel = levels[levelIndex];
+    rowOffset = 0;
+    state = Core.settle(activeLevel, Core.createState(activeLevel));
     selectedId = null; available = []; history = []; animating = false;
     winOverlay.hidden = true; levelOverlay.hidden = true;
     updateUI(); resize();
@@ -93,7 +96,20 @@
     const rect = wrap.getBoundingClientRect();
     const railHeight = controlRail.getBoundingClientRect().height;
     const layout = Layout.compute(rect.width, rect.height, railHeight, level.width, level.height);
-    ({ cellSize, visibleRows, rowOffset } = layout);
+    const offsetDelta = layout.rowOffset - rowOffset;
+    activeLevel = Layout.expandLevel(level, layout.rowOffset);
+    const shiftedState = Layout.shiftState(state, offsetDelta);
+    if (shiftedState.pieces.some((piece) => piece.y < 0)) {
+      state = Core.settle(activeLevel, Core.createState(activeLevel));
+      selectedId = null; available = []; history = [];
+    } else {
+      state = shiftedState;
+      history = history.map((snapshot) => Layout.shiftState(snapshot, offsetDelta))
+        .filter((snapshot) => snapshot.pieces.every((piece) => piece.y >= 0));
+    }
+    rowOffset = layout.rowOffset;
+    ({ cellSize, visibleRows } = layout);
+    available = selectedId ? Core.legalMoves(activeLevel, state, selectedId) : [];
     wrap.style.setProperty('--grid-size', `${cellSize}px`);
     const ratio = Math.min(devicePixelRatio || 1, 2);
     canvas.style.width = `${layout.width}px`;
@@ -105,7 +121,7 @@
   }
 
   function draw(boardState) {
-    const level = levels[levelIndex];
+    const level = activeLevel;
     context.clearRect(0, 0, canvas.width, canvas.height);
     for (let y = 0; y < visibleRows; y += 1) for (let x = 0; x < level.width; x += 1) {
       context.fillStyle = (x + y) % 2 ? colors.tanB : colors.tanA;
@@ -115,14 +131,14 @@
     (level.platforms || []).forEach(([x, y]) => drawPlatform(x, y));
     for (const move of available) {
       context.fillStyle = move.capture ? 'rgba(227,95,98,.58)' : 'rgba(104,74,37,.46)';
-      context.beginPath(); context.arc((move.to[0] + .5) * cellSize, (move.to[1] + rowOffset + .5) * cellSize, cellSize * .22, 0, Math.PI * 2); context.fill();
+      context.beginPath(); context.arc((move.to[0] + .5) * cellSize, (move.to[1] + .5) * cellSize, cellSize * .22, 0, Math.PI * 2); context.fill();
     }
     if (boardState.kingAlive) drawPiece('king', level.king[0], level.king[1], colors.red);
     boardState.pieces.forEach((piece) => drawPiece(piece.type, piece.x, piece.y, colors.blue));
     context.fillStyle = colors.green;
     context.strokeStyle = colors.ink;
     context.lineWidth = Math.max(2, cellSize * .045);
-    const floorY = (level.height + rowOffset) * cellSize;
+    const floorY = level.height * cellSize;
     context.fillRect(0, floorY - 7, level.width * cellSize, 7);
     context.strokeRect(-2, floorY - 9, level.width * cellSize + 4, 10);
   }
@@ -131,10 +147,9 @@
     for (const [x, y] of level.walls) {
       const pad = cellSize * .06;
       context.fillStyle = colors.green; context.strokeStyle = colors.ink; context.lineWidth = Math.max(2, cellSize * .045);
-      const visualY = y + rowOffset;
-      context.beginPath(); context.roundRect(x * cellSize + pad, visualY * cellSize + pad, cellSize - pad * 2, cellSize - pad * 2, cellSize * .12); context.fill(); context.stroke();
+      context.beginPath(); context.roundRect(x * cellSize + pad, y * cellSize + pad, cellSize - pad * 2, cellSize - pad * 2, cellSize * .12); context.fill(); context.stroke();
       context.beginPath();
-      context.roundRect((x + .27) * cellSize, (visualY + .27) * cellSize, cellSize * .46, cellSize * .46, cellSize * .04);
+      context.roundRect((x + .27) * cellSize, (y + .27) * cellSize, cellSize * .46, cellSize * .46, cellSize * .04);
       context.stroke();
     }
   }
@@ -142,17 +157,36 @@
   function drawPlatform(x, y) {
     const width = cellSize * .78;
     context.fillStyle = colors.green; context.strokeStyle = colors.ink; context.lineWidth = Math.max(2, cellSize * .045);
-    context.beginPath(); context.roundRect((x + .5) * cellSize - width / 2, (y + rowOffset + .84) * cellSize, width, cellSize * .1, cellSize * .05); context.fill(); context.stroke();
+    context.beginPath(); context.roundRect((x + .5) * cellSize - width / 2, (y + .84) * cellSize, width, cellSize * .1, cellSize * .05); context.fill(); context.stroke();
   }
 
   function drawPiece(type, x, y, color) {
+    if (type === 'pawn') { drawPawn(x, y, color); return; }
     const size = cellSize * .78;
     context.font = `900 ${size}px "Arial Unicode MS", "DejaVu Sans", Georgia, serif`;
     context.textAlign = 'center'; context.textBaseline = 'middle'; context.lineJoin = 'round';
     context.lineWidth = Math.max(2, cellSize * .055); context.strokeStyle = colors.ink; context.fillStyle = color;
-    const visualY = y + rowOffset;
-    context.strokeText(symbols[type], (x + .5) * cellSize, (visualY + .49) * cellSize);
-    context.fillText(symbols[type], (x + .5) * cellSize, (visualY + .49) * cellSize);
+    context.strokeText(symbols[type], (x + .5) * cellSize, (y + .49) * cellSize);
+    context.fillText(symbols[type], (x + .5) * cellSize, (y + .49) * cellSize);
+  }
+
+  function drawPawn(x, y, color) {
+    const centerX = (x + .5) * cellSize;
+    const centerY = (y + .5) * cellSize;
+    context.fillStyle = color; context.strokeStyle = colors.ink;
+    context.lineWidth = Math.max(2, cellSize * .055); context.lineJoin = 'round';
+    context.beginPath();
+    context.arc(centerX, centerY - cellSize * .2, cellSize * .115, 0, Math.PI * 2);
+    context.fill(); context.stroke();
+    context.beginPath();
+    context.moveTo(centerX - cellSize * .12, centerY - cellSize * .08);
+    context.quadraticCurveTo(centerX - cellSize * .08, centerY + cellSize * .08, centerX - cellSize * .2, centerY + cellSize * .2);
+    context.lineTo(centerX + cellSize * .2, centerY + cellSize * .2);
+    context.quadraticCurveTo(centerX + cellSize * .08, centerY + cellSize * .08, centerX + cellSize * .12, centerY - cellSize * .08);
+    context.closePath(); context.fill(); context.stroke();
+    context.beginPath();
+    context.roundRect(centerX - cellSize * .26, centerY + cellSize * .18, cellSize * .52, cellSize * .12, cellSize * .035);
+    context.fill(); context.stroke();
   }
 
   function interpolate(from, to, amount) {
@@ -181,7 +215,7 @@
   }
 
   async function playMove(move) {
-    const result = Core.applyMoveDetailed(levels[levelIndex], state, move);
+    const result = Core.applyMoveDetailed(activeLevel, state, move);
     if (!result) return;
     history.push(Core.clone(state));
     selectedId = move.pieceId; available = []; animating = true; updateUI();
@@ -204,7 +238,7 @@
     if (move) { playMove(move); return; }
     const piece = state.pieces.find((item) => item.x === x && item.y === y);
     selectedId = piece?.id || null;
-    available = selectedId ? Core.legalMoves(levels[levelIndex], state, selectedId) : [];
+    available = selectedId ? Core.legalMoves(activeLevel, state, selectedId) : [];
     draw(state);
   }
 
@@ -244,9 +278,9 @@
 
   canvas.addEventListener('pointerdown', (event) => {
     const rect = canvas.getBoundingClientRect();
-    const logicalY = Layout.logicalRowAt(event.clientY - rect.top, cellSize, rowOffset);
-    if (logicalY >= 0 && logicalY < levels[levelIndex].height) {
-      selectAt(Math.floor((event.clientX - rect.left) / cellSize), logicalY);
+    const boardY = Math.floor((event.clientY - rect.top) / cellSize);
+    if (boardY >= 0 && boardY < activeLevel.height) {
+      selectAt(Math.floor((event.clientX - rect.left) / cellSize), boardY);
     }
   });
   undoButton.addEventListener('click', () => { if (!animating && history.length) { state = history.pop(); selectedId = null; available = []; updateUI(); draw(state); } });

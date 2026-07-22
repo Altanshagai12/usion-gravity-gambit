@@ -14,16 +14,19 @@ test('only the logical canvas paints checkerboard cells', () => {
   assert.match(styles, /canvas[^}]*max-width:\s*none[^}]*max-height:\s*none/);
 });
 
-test('portrait filler rows use the canvas square-cell layout', () => {
+test('portrait rows use the playable runtime level', () => {
   assert.match(layout, /Math\.ceil\(availableHeight \/ cellSize\)/);
+  assert.match(layout, /function expandLevel/);
   assert.match(app, /for \(let y = 0; y < visibleRows;/);
-  assert.match(app, /Layout\.logicalRowAt/);
+  assert.match(app, /Core\.legalMoves\(activeLevel/);
+  assert.match(app, /boardY >= 0 && boardY < activeLevel\.height/);
 });
 
-test('pieces are larger and the pawn uses a color-fillable glyph', () => {
+test('pieces are larger and the pawn is drawn symmetrically around its center', () => {
   assert.match(app, /const size = cellSize \* \.78/);
-  assert.match(app, /pawn: '\\u2659\\ufe0e'/);
-  assert.doesNotMatch(app, /pawn: '\\u265f'/);
+  assert.match(app, /function drawPawn/);
+  assert.match(app, /const centerX = \(x \+ \.5\) \* cellSize/);
+  assert.doesNotMatch(app, /pawn:\s*['"]/);
 });
 
 test('selection does not draw a green box around the active piece', () => {
@@ -33,6 +36,6 @@ test('selection does not draw a green box around the active piece', () => {
 
 test('mobile clients receive the current uncached UI assets', () => {
   for (const asset of ['styles.css', 'levels.js', 'layout.js', 'app.js']) {
-    assert.match(index, new RegExp(`${asset.replace('.', '\\.')}\\?v=2\\.3\\.0`));
+    assert.match(index, new RegExp(`${asset.replace('.', '\\.')}\\?v=2\\.4\\.0`));
   }
 });

@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const Core = require('../game-core');
 const Solver = require('../solver');
 const levels = require('../levels');
+const Layout = require('../layout');
 
 test('rook cannot move through a wall', () => {
   const level = { width: 5, height: 5, pieces: [{ id: 'r', type: 'rook', x: 0, y: 3 }], king: [4, 3], walls: [[2, 3]] };
@@ -101,5 +102,23 @@ test('challenge difficulty strictly increases from level 8 onward', () => {
 test('at least 80% of campaign pieces are solver-required', () => {
   const total = levels.reduce((sum, level) => sum + level.pieces.length, 0);
   const required = levels.reduce((sum, level) => sum + Solver.requiredPieces(level, { maxNodes: 100000 }).length, 0);
+  assert.ok(required / total >= 0.8, `${required}/${total} required pieces`);
+});
+
+test('portrait board heights preserve every optimal campaign solution', () => {
+  const baseline = levels.map((level) => Solver.solve(level, { maxNodes: 100000 }).moves);
+  for (const extraRows of [1, 2, 4, 8, 12]) {
+    levels.forEach((level, index) => {
+      const result = Solver.solve(Layout.expandLevel(level, extraRows), { maxNodes: 100000 });
+      assert.equal(result.solved, true, `level ${index + 1} with ${extraRows} extra rows`);
+      assert.equal(result.moves, baseline[index], `level ${index + 1} shortcut at +${extraRows} rows`);
+    });
+  }
+});
+
+test('portrait board keeps the campaign piece-usage target', () => {
+  const expanded = levels.map((level) => Layout.expandLevel(level, 6));
+  const total = expanded.reduce((sum, level) => sum + level.pieces.length, 0);
+  const required = expanded.reduce((sum, level) => sum + Solver.requiredPieces(level, { maxNodes: 100000 }).length, 0);
   assert.ok(required / total >= 0.8, `${required}/${total} required pieces`);
 });
