@@ -50,6 +50,14 @@ test('gravity exposes animation frames', () => {
   assert.equal(result.state.pieces[0].y, 5);
 });
 
+test('a move exposes immediate continuation moves for the same piece', () => {
+  const level = levels[5];
+  const state = Core.settle(level, Core.createState(level));
+  const firstMove = Core.legalMoves(level, state, state.pieces[0].id).find((move) => move.to[0] === 4 && move.to[1] === 2);
+  const result = Core.applyMoveDetailed(level, state, firstMove);
+  assert.equal(result.nextMoves.some((move) => move.capture && move.to[0] === 7 && move.to[1] === 5), true);
+});
+
 test('capturing the king wins immediately', () => {
   const level = levels[0];
   const state = Core.settle(level, Core.createState(level));

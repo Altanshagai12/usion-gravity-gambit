@@ -6,6 +6,7 @@
   const canvas = document.getElementById('board');
   const context = canvas.getContext('2d');
   const wrap = document.getElementById('boardWrap');
+  const controlRail = document.querySelector('.control-rail');
   const undoButton = document.getElementById('undoButton');
   const winOverlay = document.getElementById('winOverlay');
   const levelOverlay = document.getElementById('levelOverlay');
@@ -73,7 +74,8 @@
     if (!state) return;
     const level = levels[levelIndex];
     const rect = wrap.getBoundingClientRect();
-    cellSize = Math.max(30, Math.floor(Math.min(rect.width / level.width, (rect.height - 56) / level.height)));
+    const railHeight = controlRail.getBoundingClientRect().height;
+    cellSize = Math.max(1, Math.floor(Math.min(rect.width / level.width, (rect.height - railHeight) / level.height)));
     wrap.style.setProperty('--grid-size', `${cellSize}px`);
     const ratio = Math.min(devicePixelRatio || 1, 2);
     canvas.style.width = `${cellSize * level.width}px`;
@@ -107,14 +109,12 @@
   }
 
   function drawWalls(level) {
-    const wallSet = new Set(level.walls.map(([x, y]) => `${x},${y}`));
     for (const [x, y] of level.walls) {
       const pad = cellSize * .06;
       context.fillStyle = colors.green; context.strokeStyle = colors.ink; context.lineWidth = Math.max(2, cellSize * .045);
       context.beginPath(); context.roundRect(x * cellSize + pad, y * cellSize + pad, cellSize - pad * 2, cellSize - pad * 2, cellSize * .12); context.fill(); context.stroke();
       context.beginPath();
-      if (wallSet.has(`${x + 1},${y}`)) context.moveTo((x + .5) * cellSize, (y + .2) * cellSize), context.lineTo((x + .8) * cellSize, (y + .5) * cellSize), context.lineTo((x + .5) * cellSize, (y + .8) * cellSize);
-      else context.rect((x + .27) * cellSize, (y + .27) * cellSize, cellSize * .46, cellSize * .46);
+      context.roundRect((x + .27) * cellSize, (y + .27) * cellSize, cellSize * .46, cellSize * .46, cellSize * .04);
       context.stroke();
     }
   }
@@ -167,14 +167,17 @@
     const result = Core.applyMoveDetailed(levels[levelIndex], state, move);
     if (!result) return;
     history.push(Core.clone(state));
-    selectedId = null; available = []; animating = true; updateUI();
+    selectedId = move.pieceId; available = []; animating = true; updateUI();
     let previous = state;
     for (let index = 0; index < result.frames.length; index += 1) {
       const frame = result.frames[index];
       await tween(previous, frame, index === 0 ? 170 : 92);
       previous = frame;
     }
-    state = result.state; animating = false; updateUI(); draw(state);
+    state = result.state; animating = false;
+    selectedId = state.kingAlive && state.pieces.some((piece) => piece.id === move.pieceId) ? move.pieceId : null;
+    available = selectedId ? result.nextMoves : [];
+    updateUI(); draw(state);
     if (!state.kingAlive) completeLevel();
   }
 

@@ -118,7 +118,8 @@
     if (valid.capture) next.kingAlive = false;
     const frames = [clone(next)];
     if (next.kingAlive) frames.push(...settleFrames(level, next));
-    return { state: next, frames, move: valid };
+    const nextMoves = next.kingAlive ? legalMoves(level, next, piece.id) : [];
+    return { state: next, frames, move: valid, nextMoves };
   }
 
   function applyMove(level, state, move) {
