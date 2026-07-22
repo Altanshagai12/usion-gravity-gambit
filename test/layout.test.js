@@ -4,12 +4,13 @@ const Core = require('../game-core');
 const Layout = require('../layout');
 
 test('tall phone viewports are fully covered by square canvas rows', () => {
-  const result = Layout.compute(591, 1090, 56, 8, 9);
+  const result = Layout.compute(591, 1090, 56, 8, 9, 112);
   assert.equal(result.width, result.cellSize * 8);
   assert.equal(result.height, result.cellSize * result.visibleRows);
   assert.ok(result.visibleRows > 9);
-  assert.ok(result.height >= result.availableHeight);
-  assert.ok(result.height - result.availableHeight < result.cellSize);
+  assert.equal(result.height, result.availableHeight);
+  assert.ok(result.width <= 591);
+  assert.equal(result.availableHeight, 922);
 });
 
 test('portrait rows expand every logical level coordinate', () => {

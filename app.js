@@ -7,11 +7,12 @@
   const canvas = document.getElementById('board');
   const context = canvas.getContext('2d');
   const wrap = document.getElementById('boardWrap');
+  const topRail = document.querySelector('.top-rail');
   const controlRail = document.querySelector('.control-rail');
   const undoButton = document.getElementById('undoButton');
   const winOverlay = document.getElementById('winOverlay');
   const levelOverlay = document.getElementById('levelOverlay');
-  const symbols = { rook: '\u265c', bishop: '\u265d', knight: '\u265e', queen: '\u265b', king: '\u265a' };
+  const symbols = { rook: '\u265c', bishop: '\u265d', knight: '\u265e', queen: '\u265b', king: '\u265a', pawn: '\u265f\ufe0e' };
   const colors = { tanA: '#c9a06b', tanB: '#b78a49', green: '#63d64e', blue: '#55a8df', red: '#e35f62', ink: '#11130f' };
   const copy = {
     en: { moves: 'Moves', solved: 'SOLVED', campaign: 'CAMPAIGN', choose: 'Choose a puzzle', next: 'Next puzzle', win: 'Beautiful.', moveLine: (n) => `Solved in ${n} move${n === 1 ? '' : 's'}.` },
@@ -95,7 +96,8 @@
     const level = levels[levelIndex];
     const rect = wrap.getBoundingClientRect();
     const railHeight = controlRail.getBoundingClientRect().height;
-    const layout = Layout.compute(rect.width, rect.height, railHeight, level.width, level.height);
+    const topRailHeight = topRail.getBoundingClientRect().height;
+    const layout = Layout.compute(rect.width, rect.height, railHeight, level.width, level.height, topRailHeight);
     const offsetDelta = layout.rowOffset - rowOffset;
     activeLevel = Layout.expandLevel(level, layout.rowOffset);
     const shiftedState = Layout.shiftState(state, offsetDelta);
@@ -161,32 +163,17 @@
   }
 
   function drawPiece(type, x, y, color) {
-    if (type === 'pawn') { drawPawn(x, y, color); return; }
     const size = cellSize * .78;
     context.font = `900 ${size}px "Arial Unicode MS", "DejaVu Sans", Georgia, serif`;
     context.textAlign = 'center'; context.textBaseline = 'middle'; context.lineJoin = 'round';
     context.lineWidth = Math.max(2, cellSize * .055); context.strokeStyle = colors.ink; context.fillStyle = color;
-    context.strokeText(symbols[type], (x + .5) * cellSize, (y + .49) * cellSize);
-    context.fillText(symbols[type], (x + .5) * cellSize, (y + .49) * cellSize);
-  }
-
-  function drawPawn(x, y, color) {
+    const glyph = symbols[type];
     const centerX = (x + .5) * cellSize;
-    const centerY = (y + .5) * cellSize;
-    context.fillStyle = color; context.strokeStyle = colors.ink;
-    context.lineWidth = Math.max(2, cellSize * .055); context.lineJoin = 'round';
-    context.beginPath();
-    context.arc(centerX, centerY - cellSize * .2, cellSize * .115, 0, Math.PI * 2);
-    context.fill(); context.stroke();
-    context.beginPath();
-    context.moveTo(centerX - cellSize * .12, centerY - cellSize * .08);
-    context.quadraticCurveTo(centerX - cellSize * .08, centerY + cellSize * .08, centerX - cellSize * .2, centerY + cellSize * .2);
-    context.lineTo(centerX + cellSize * .2, centerY + cellSize * .2);
-    context.quadraticCurveTo(centerX + cellSize * .08, centerY + cellSize * .08, centerX + cellSize * .12, centerY - cellSize * .08);
-    context.closePath(); context.fill(); context.stroke();
-    context.beginPath();
-    context.roundRect(centerX - cellSize * .26, centerY + cellSize * .18, cellSize * .52, cellSize * .12, cellSize * .035);
-    context.fill(); context.stroke();
+    const metrics = context.measureText(glyph);
+    const inkOffset = ((metrics.actualBoundingBoxRight || 0) - (metrics.actualBoundingBoxLeft || 0)) / 2;
+    const drawX = centerX - inkOffset;
+    context.strokeText(glyph, drawX, (y + .49) * cellSize);
+    context.fillText(glyph, drawX, (y + .49) * cellSize);
   }
 
   function interpolate(from, to, amount) {

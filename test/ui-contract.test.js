@@ -15,18 +15,27 @@ test('only the logical canvas paints checkerboard cells', () => {
 });
 
 test('portrait rows use the playable runtime level', () => {
-  assert.match(layout, /Math\.ceil\(availableHeight \/ cellSize\)/);
+  assert.match(layout, /Math\.ceil\(availableHeight \/ maxCellSize\)/);
   assert.match(layout, /function expandLevel/);
   assert.match(app, /for \(let y = 0; y < visibleRows;/);
   assert.match(app, /Core\.legalMoves\(activeLevel/);
   assert.match(app, /boardY >= 0 && boardY < activeLevel\.height/);
 });
 
-test('pieces are larger and the pawn is drawn symmetrically around its center', () => {
+test('every chess piece shares one optically centered glyph pipeline', () => {
   assert.match(app, /const size = cellSize \* \.78/);
-  assert.match(app, /function drawPawn/);
-  assert.match(app, /const centerX = \(x \+ \.5\) \* cellSize/);
-  assert.doesNotMatch(app, /pawn:\s*['"]/);
+  assert.match(app, /pawn: '\\u265f\\ufe0e'/);
+  assert.match(app, /context\.measureText\(glyph\)/);
+  assert.match(app, /metrics\.actualBoundingBoxRight/);
+  assert.doesNotMatch(app, /function drawPawn/);
+});
+
+test('the green header and footer reserve separate board space', () => {
+  assert.match(index, /<header class="top-rail">/);
+  assert.match(styles, /\.top-rail[^}]*background:\s*var\(--green\)/);
+  assert.match(styles, /\.control-rail[^}]*background:\s*var\(--green\)/);
+  assert.match(app, /topRail\.getBoundingClientRect\(\)\.height/);
+  assert.match(layout, /viewportHeight - railHeight - topRailHeight/);
 });
 
 test('selection does not draw a green box around the active piece', () => {
@@ -36,6 +45,6 @@ test('selection does not draw a green box around the active piece', () => {
 
 test('mobile clients receive the current uncached UI assets', () => {
   for (const asset of ['styles.css', 'levels.js', 'layout.js', 'app.js']) {
-    assert.match(index, new RegExp(`${asset.replace('.', '\\.')}\\?v=2\\.4\\.0`));
+    assert.match(index, new RegExp(`${asset.replace('.', '\\.')}\\?v=2\\.5\\.0`));
   }
 });

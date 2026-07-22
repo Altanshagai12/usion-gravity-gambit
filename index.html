@@ -7,18 +7,20 @@
   <title>Gravity Gambit</title>
   <link rel="icon" href="profile-icon-v1.png" type="image/png">
   <link rel="apple-touch-icon" href="profile-icon-v1.png">
-  <link rel="stylesheet" href="styles.css?v=2.4.0">
+  <link rel="stylesheet" href="styles.css?v=2.5.0">
   <script async src="https://usions.com/usion-sdk.js"></script>
 </head>
 <body>
   <main class="game-shell">
     <div id="boardWrap" class="board-wrap">
       <canvas id="board" aria-label="Gravity chess puzzle board"></canvas>
-      <section class="hud" aria-live="polite">
-        <button id="levelsButton" type="button"><span id="levelNumber">1 / 24</span><b id="levelTitle">Open File</b></button>
-        <div class="move-pill"><span data-i18n="moves">Moves</span><strong id="moveCount">0</strong></div>
-      </section>
-      <p id="levelHint" class="hint">Rooks travel in straight lines.</p>
+      <header class="top-rail">
+        <section class="hud" aria-live="polite">
+          <button id="levelsButton" type="button"><span id="levelNumber">1 / 24</span><b id="levelTitle">Open File</b></button>
+          <div class="move-pill"><span data-i18n="moves">Moves</span><strong id="moveCount">0</strong></div>
+        </section>
+        <p id="levelHint" class="hint">Rooks travel in straight lines.</p>
+      </header>
       <nav class="control-rail" aria-label="Puzzle controls">
         <button id="undoButton" class="round-control" type="button" aria-label="Undo">↶</button>
         <button id="resetButton" class="round-control" type="button" aria-label="Reset">↻</button>
@@ -36,9 +38,9 @@
     </div>
   </div>
 
-  <script src="game-core.js?v=2.4.0"></script>
-  <script src="levels.js?v=2.4.0"></script>
-  <script src="layout.js?v=2.4.0"></script>
-  <script src="app.js?v=2.4.0"></script>
+  <script src="game-core.js?v=2.5.0"></script>
+  <script src="levels.js?v=2.5.0"></script>
+  <script src="layout.js?v=2.5.0"></script>
+  <script src="app.js?v=2.5.0"></script>
 </body>
 </html>

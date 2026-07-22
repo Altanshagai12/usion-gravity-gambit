@@ -5,10 +5,11 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  function compute(viewportWidth, viewportHeight, railHeight, columns, logicalRows) {
-    const availableHeight = Math.max(1, viewportHeight - railHeight);
-    const cellSize = Math.max(1, Math.floor(Math.min(viewportWidth / columns, availableHeight / logicalRows)));
-    const visibleRows = Math.max(logicalRows, Math.ceil(availableHeight / cellSize));
+  function compute(viewportWidth, viewportHeight, railHeight, columns, logicalRows, topRailHeight = 0) {
+    const availableHeight = Math.max(1, viewportHeight - railHeight - topRailHeight);
+    const maxCellSize = viewportWidth / columns;
+    const visibleRows = Math.max(logicalRows, Math.ceil(availableHeight / maxCellSize));
+    const cellSize = Math.max(1, Math.min(maxCellSize, availableHeight / visibleRows));
     return {
       cellSize,
       visibleRows,
