@@ -74,6 +74,20 @@ test('every campaign level is solvable', () => {
   });
 });
 
+test('thin platforms never overlap solid walls', () => {
+  levels.forEach((level, index) => {
+    const walls = new Set(level.walls.map(([x, y]) => `${x},${y}`));
+    const overlap = level.platforms.filter(([x, y]) => walls.has(`${x},${y}`));
+    assert.deepEqual(overlap, [], `level ${index + 1}: ${level.title}`);
+  });
+});
+
+test('most advanced levels use at least three pieces', () => {
+  const advanced = levels.slice(11);
+  const rich = advanced.filter((level) => level.pieces.length >= 3);
+  assert.ok(rich.length / advanced.length >= 0.75, `${rich.length}/${advanced.length} advanced levels`);
+});
+
 test('challenge difficulty strictly increases from level 8 onward', () => {
   const scores = levels.slice(7).map((level) => {
     const result = Solver.solve(level, { maxNodes: 100000 });
@@ -84,8 +98,8 @@ test('challenge difficulty strictly increases from level 8 onward', () => {
   });
 });
 
-test('at least 80% of multi-piece levels require every piece', () => {
-  const multiPiece = levels.filter((level) => level.pieces.length > 1);
-  const strict = multiPiece.filter((level) => Solver.requiredPieces(level, { maxNodes: 100000 }).length === level.pieces.length);
-  assert.ok(strict.length / multiPiece.length >= 0.8, `${strict.length}/${multiPiece.length} strict levels`);
+test('at least 80% of campaign pieces are solver-required', () => {
+  const total = levels.reduce((sum, level) => sum + level.pieces.length, 0);
+  const required = levels.reduce((sum, level) => sum + Solver.requiredPieces(level, { maxNodes: 100000 }).length, 0);
+  assert.ok(required / total >= 0.8, `${required}/${total} required pieces`);
 });

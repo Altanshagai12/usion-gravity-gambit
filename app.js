@@ -80,7 +80,7 @@
     document.getElementById('levelNumber').textContent = `${levelIndex + 1} / ${levels.length}`;
     document.getElementById('moveCount').textContent = state?.moves || 0;
     document.getElementById('levelTitle').textContent = language === 'mn' ? `Үе ${levelIndex + 1}` : levels[levelIndex].title;
-    document.getElementById('levelHint').textContent = language === 'mn' ? hintsMn[levelIndex] : levels[levelIndex].hint;
+    document.getElementById('levelHint').textContent = language === 'mn' ? hintsMn[levels[levelIndex].hintIndex ?? levelIndex] : levels[levelIndex].hint;
     undoButton.disabled = history.length === 0 || animating;
   }
 
@@ -113,8 +113,8 @@
       context.fillStyle = move.capture ? 'rgba(227,95,98,.58)' : 'rgba(104,74,37,.46)';
       context.beginPath(); context.arc((move.to[0] + .5) * cellSize, (move.to[1] + .5) * cellSize, cellSize * .22, 0, Math.PI * 2); context.fill();
     }
-    if (boardState.kingAlive) drawPiece('king', level.king[0], level.king[1], colors.red, false);
-    boardState.pieces.forEach((piece) => drawPiece(piece.type, piece.x, piece.y, colors.blue, piece.id === selectedId));
+    if (boardState.kingAlive) drawPiece('king', level.king[0], level.king[1], colors.red);
+    boardState.pieces.forEach((piece) => drawPiece(piece.type, piece.x, piece.y, colors.blue));
     context.fillStyle = colors.green;
     context.strokeStyle = colors.ink;
     context.lineWidth = Math.max(2, cellSize * .045);
@@ -139,17 +139,13 @@
     context.beginPath(); context.roundRect((x + .5) * cellSize - width / 2, (y + .91) * cellSize, width, cellSize * .14, cellSize * .09); context.fill(); context.stroke();
   }
 
-  function drawPiece(type, x, y, color, selected) {
+  function drawPiece(type, x, y, color) {
     const size = cellSize * .69;
     context.font = `900 ${size}px Georgia, serif`;
     context.textAlign = 'center'; context.textBaseline = 'middle'; context.lineJoin = 'round';
     context.lineWidth = Math.max(3, cellSize * .075); context.strokeStyle = colors.ink; context.fillStyle = color;
     context.strokeText(symbols[type], (x + .5) * cellSize, (y + .49) * cellSize);
     context.fillText(symbols[type], (x + .5) * cellSize, (y + .49) * cellSize);
-    if (selected) {
-      context.strokeStyle = colors.green; context.lineWidth = Math.max(3, cellSize * .06);
-      context.strokeRect(x * cellSize + 4, y * cellSize + 4, cellSize - 8, cellSize - 8);
-    }
   }
 
   function interpolate(from, to, amount) {
