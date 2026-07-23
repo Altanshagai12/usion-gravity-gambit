@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "node scripts/build-sites.js",
     "publish:profile": "node scripts/publish-profile.js",
     "start": "node server.js",
     "test": "node --test",

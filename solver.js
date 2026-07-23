@@ -9,9 +9,10 @@
     const maxNodes = options.maxNodes || 50000;
     const initial = Core.settle(level, Core.createState(level));
     const required = options.requireAllPieces ? new Set(initial.pieces.map((piece) => piece.id)) : null;
+    const tracksUsage = required !== null;
     const forbidden = new Set(options.forbiddenPieceIds || []);
     const queue = [{ state: initial, path: [], used: new Set() }];
-    const visited = new Set([`${Core.stateHash(initial)}|`]);
+    const visited = new Set([Core.stateHash(initial)]);
     let cursor = 0;
 
     while (cursor < queue.length && visited.size <= maxNodes) {
@@ -20,12 +21,13 @@
         if (forbidden.has(move.pieceId)) continue;
         const next = Core.applyMove(level, current.state, move);
         if (!next) continue;
-        const path = [...current.path, move];
-        const used = new Set(current.used).add(move.pieceId);
+        const path = move.promotion ? current.path : [...current.path, move];
+        const used = tracksUsage && !move.promotion ? new Set(current.used).add(move.pieceId) : current.used;
         const fulfilled = !required || [...required].every((id) => used.has(id));
         if (!next.kingAlive && fulfilled) return { solved: true, moves: path.length, path, explored: visited.size, used: [...used] };
         if (!next.kingAlive) continue;
-        const hash = `${Core.stateHash(next)}|${[...used].sort().join(',')}`;
+        const stateKey = Core.stateHash(next);
+        const hash = tracksUsage ? `${stateKey}|${[...used].sort().join(',')}` : stateKey;
         if (visited.has(hash)) continue;
         visited.add(hash);
         queue.push({ state: next, path, used });

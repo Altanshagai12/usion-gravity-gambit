@@ -1,20 +1,17 @@
-# Gravity Gambit
+# Chessformer
 
-An original chess-movement + gravity puzzle game built for Usion. Move blue chess pieces by their familiar rules; after every move, all unsupported pieces fall. Capture the anchored red king to solve each room.
-
-This project is inspired by the broad chess-puzzle-platformer genre, but uses an original name, visual system, codebase, campaign, and solver-generated level layouts.
+A browser recreation of Chessformer's original 24-level campaign. Move the blue chess pieces by their normal rules; after each move, unsupported pieces fall. Capture the red king to finish a level.
 
 ## Features
 
-- 24-level campaign with progressive mechanics and 1–10 move optimal solutions
+- The original 24 levels on their fixed 16×11 boards
 - Rook, bishop, knight, queen, king, and pawn movement rules
 - Animated deterministic gravity and piece stacking
-- Pass-through one-way line platforms and a pawn's first-move double advance
-- Solver-enforced campaign quality: 84.3% of all placed pieces are required (minimum target: 80%)
-- Legal-move highlighting, undo, reset, and gated level selection
-- English and Mongolian UI with a mobile-first Usion layout
+- Pass-through thin platforms, keys and locks, and purple pressure buttons
+- Pawn first-move double advance and four-choice promotion
+- Legal-move highlighting, reset, and the original three-level unlock window
 - Progress stored per user through `Usion.storage`
-- Dependency-free Canvas renderer; no external assets or gameplay libraries
+- Dependency-free Canvas renderer
 
 ## Local development
 
@@ -31,7 +28,7 @@ npm test
 npm run solve
 ```
 
-The test suite validates chess movement, wall collision, pass-through platforms, pawn double-step, gravity animation frames, capture, campaign solvability, and the 80% piece-utilization target. The BFS solver reports the shortest solution and required-piece count for every level.
+The test suite validates chess movement, gravity capture, pass-through platforms, keys, locks, pressure buttons, pawn promotion, the campaign data contract, and the opening levels' playability.
 
 ## Publish the Usion profile image
 
@@ -49,8 +46,8 @@ Use `npm run publish:profile -- --dry-run` to verify the public PNG without chan
 
 ```json
 {
-  "name": "Gravity Gambit",
-  "description": "Chess moves meet gravity in a handcrafted puzzle campaign.",
+  "name": "Chessformer",
+  "description": "Chess moves meet gravity across the original 24-level campaign.",
   "service_type": "game",
   "cost": 0,
   "tags": ["game", "puzzle", "chess", "single-player", "iframe"],
